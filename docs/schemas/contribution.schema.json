@@ -1,0 +1,20 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "contribution",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["record_type", "contribution_id", "round_id", "round_index", "clinic_id", "n_samples", "update_hash", "base_model_hash", "signer", "timestamp", "signature"],
+  "properties": {
+    "record_type": {"const": "contribution"},
+    "contribution_id": {"type": "string", "description": "round_id + ':' + clinic_id"},
+    "round_id": {"type": "string", "pattern": "^r[0-9]{3}$"},
+    "round_index": {"type": "integer", "minimum": 1},
+    "clinic_id": {"type": "string", "pattern": "^clinic_[0-9]+$"},
+    "n_samples": {"type": "integer", "minimum": 1},
+    "update_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "base_model_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "signer": {"type": "string"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "signature": {"type": "string", "pattern": "^[0-9a-f]{128}$"}
+  }
+}

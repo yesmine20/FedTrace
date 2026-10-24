@@ -1,0 +1,21 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "decision",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["record_type", "decision_id", "case_pseudo", "round_id", "model_hash", "predicted_class", "probability", "explanation_hash", "validation_status", "signer", "timestamp", "signature"],
+  "properties": {
+    "record_type": {"const": "decision"},
+    "decision_id": {"type": "string"},
+    "case_pseudo": {"type": "string", "description": "HMAC-SHA256 avec cle secrete, jamais de donnee patient en clair"},
+    "round_id": {"type": "string", "pattern": "^r[0-9]{3}$"},
+    "model_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "predicted_class": {"type": "string"},
+    "probability": {"type": "number", "minimum": 0, "maximum": 1},
+    "explanation_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "validation_status": {"enum": ["pending_clinician_review", "validated", "rejected"]},
+    "signer": {"type": "string"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "signature": {"type": "string", "pattern": "^[0-9a-f]{128}$"}
+  }
+}

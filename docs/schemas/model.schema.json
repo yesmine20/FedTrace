@@ -1,0 +1,33 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "model",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["record_type", "round_id", "round_index", "parent_round_id", "model_hash", "strategy", "contributions", "retained", "discarded", "metrics", "signer", "timestamp", "signature"],
+  "properties": {
+    "record_type": {"const": "model"},
+    "round_id": {"type": "string", "pattern": "^r[0-9]{3}$"},
+    "round_index": {"type": "integer", "minimum": 0},
+    "parent_round_id": {"type": "string", "description": "vide pour le round 0 (racine)"},
+    "model_hash": {"type": "string", "pattern": "^[0-9a-f]{64}$"},
+    "strategy": {"enum": ["init", "fedavg", "robust_median", "trimmed_mean"]},
+    "contributions": {"type": "array", "items": {"type": "string"}},
+    "retained": {"type": "array", "items": {"type": "string"}},
+    "discarded": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["clinic_id", "reason"],
+        "properties": {"clinic_id": {"type": "string"}, "reason": {"type": "string"}}
+      }
+    },
+    "metrics": {
+      "type": "object",
+      "properties": {"accuracy_6": {"type": "number"}, "accuracy_normal": {"type": "number"}}
+    },
+    "signer": {"const": "server"},
+    "timestamp": {"type": "string", "format": "date-time"},
+    "signature": {"type": "string", "pattern": "^[0-9a-f]{128}$"}
+  }
+}
