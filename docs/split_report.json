@@ -1,0 +1,44 @@
+{
+  "seed_utilisee": 42,
+  "alpha": 2.0,
+  "test_size": 0.2,
+  "lignes_par_clinique_et_classe": {
+    "Autoimmune orchitis": {
+      "1": 1156,
+      "2": 576,
+      "3": 271
+    },
+    "Graves' disease": {
+      "1": 457,
+      "2": 979,
+      "3": 168
+    },
+    "Normal": {
+      "1": 649,
+      "2": 658,
+      "3": 550
+    },
+    "Rheumatoid arthritis": {
+      "1": 855,
+      "2": 295,
+      "3": 754
+    },
+    "Sj\u00f6gren syndrome": {
+      "1": 633,
+      "2": 218,
+      "3": 810
+    },
+    "Systemic lupus erythematosus (SLE)": {
+      "1": 640,
+      "2": 265,
+      "3": 1098
+    }
+  },
+  "lignes_test": 2780,
+  "groupes_par_ensemble": {
+    "clinic_1": 205,
+    "clinic_2": 119,
+    "clinic_3": 190,
+    "test": 129
+  }
+}
