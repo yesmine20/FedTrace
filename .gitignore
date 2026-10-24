@@ -1,21 +1,25 @@
-offchain/
+# données brutes et sorties hors chaîne
 data/raw/
-__pycache__/
-*.pyc
-.venv/
+offchain/
 ledger/chain.jsonl
-@"
-.venv/
-.venv312/
+
+# secrets : clés privées et clé HMAC, ne jamais versionner
+keys/
+.env
+.streamlit/secrets.toml
+
+# files de reprise locales
+*.sqlite
+*.db
+
+# Python
 __pycache__/
 *.py[cod]
 .pytest_cache/
-.streamlit/secrets.toml
-.env
 .venv/
+.venv312/
 venv/
-__pycache__/
-*.py[cod]
-.env
+
+# éditeurs
 .idea/
 .vscode/

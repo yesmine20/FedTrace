@@ -1,0 +1,19 @@
+{
+  "seed": 42,
+  "n_clinics": 3,
+  "rounds": 20,
+  "tau": null,
+  "strategy": "fedavg",
+  "paths": {
+    "clinics": [
+      "data/clinic_1/clinic_1.csv",
+      "data/clinic_2/clinic_2.csv",
+      "data/clinic_3/clinic_3.csv"
+    ],
+    "test": "data/test/test.csv",
+    "ledger": "ledger/chain.jsonl",
+    "offchain": "offchain/",
+    "keys": "keys/",
+    "members": "members.json"
+  }
+}
