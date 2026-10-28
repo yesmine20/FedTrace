@@ -23,8 +23,8 @@ def world():
 
 
 def contribution():
-    return {"record_type": "contribution", "signer": "clinic_1", "n_samples": 4390, "round": 1}
-
+    return {"record_type": "contribution", "signer": "clinic_1", "clinic_id": "clinic_1",  # CORRIGE
+            "n_samples": 4390, "round": 1}
 
 def test_valide(world):
     keys, members = world
@@ -50,26 +50,26 @@ def test_cle_dune_autre_clinique_est_rejetee(world):
 
 def test_clinique_ne_peut_pas_signer_un_modele(world):
     keys, members = world
-    r = {"type": "model", "signer": "clinic_1", "round": 1}
+    r = {"record_type": "model", "signer": "clinic_1", "round": 1}
     s = sign(r, keys["clinic_1"])  # signature techniquement valide
     assert check_record(r, s, members) == (False, "type non autorise pour ce signataire")
 
 
 def test_serveur_ne_peut_pas_signer_une_contribution(world):
     keys, members = world
-    r = {"type": "contribution", "signer": "server", "n_samples": 1}
+    r = {"record_type": "contribution", "signer": "server", "n_samples": 1}
     assert not check_record(r, sign(r, keys["server"]), members)[0]
 
 
 def test_signataire_inconnu(world):
     keys, members = world
-    r = {"type": "contribution", "signer": "clinic_9"}
+    r = {"record_type": "contribution", "signer": "clinic_9"}
     assert check_record(r, sign(r, keys["clinic_1"]), members) == (False, "signataire inconnu")
 
 
 def test_serialisation_independante_de_lordre():
-    a = {"type": "model", "signer": "server", "round": 2}
-    b = {"round": 2, "signer": "server", "type": "model"}
+    a = {"record_type": "model", "signer": "server", "round": 2}
+    b = {"round": 2, "signer": "server", "record_type": "model"}
     assert canonical_bytes(a) == canonical_bytes(b)
 
 
@@ -96,3 +96,9 @@ def test_pseudo_different_selon_le_cas():
 
 def test_pseudo_different_selon_la_cle():
     assert case_pseudo("patient_001", key=KEY) != case_pseudo("patient_001", key=bytes(32))
+
+def test_clinique_ne_peut_pas_signer_pour_une_autre(world):
+    keys, members = world
+    r = {"record_type": "contribution", "signer": "clinic_2", "clinic_id": "clinic_1", "n_samples": 10}
+    s = sign(r, keys["clinic_2"])  # signature valide, mais identite usurpee
+    assert check_record(r, s, members) == (False, "clinic_id different du signataire")
