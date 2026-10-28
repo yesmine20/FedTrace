@@ -23,3 +23,6 @@ venv/
 # éditeurs
 .idea/
 .vscode/
+
+# clés privées (B2)
+secrets/

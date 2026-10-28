@@ -1,0 +1,31 @@
+{
+  "clinic_1": {
+    "allowed_types": [
+      "contribution"
+    ],
+    "public_key": "f1b3d0ee8f81a0ae540d636d4f0afae25cdfc92534556b568a74bd3c38b39199",
+    "role": "clinic"
+  },
+  "clinic_2": {
+    "allowed_types": [
+      "contribution"
+    ],
+    "public_key": "28eedf0a4f4571114ea8ac3b722574efb0fbc8cd9c4615c25816f849e7a599e7",
+    "role": "clinic"
+  },
+  "clinic_3": {
+    "allowed_types": [
+      "contribution"
+    ],
+    "public_key": "c0e6a1b4238693516ba2184db607eb2ec5d740709b9c7a04b389f18f79b65d0f",
+    "role": "clinic"
+  },
+  "server": {
+    "allowed_types": [
+      "model",
+      "decision"
+    ],
+    "public_key": "c3fbd75cc9199c1f3439c11600f3bfe6c154d453547f2662675ee1145058f7a2",
+    "role": "server"
+  }
+}
