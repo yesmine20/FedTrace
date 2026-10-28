@@ -14,7 +14,7 @@ def check_record(record, signature_hex, members):
     signer = record.get("signer")
     if signer not in members:
         return False, "signataire inconnu"
-    if record.get("type") not in members[signer]["allowed_types"]:
+    if record.get("record_type") not in members[signer]["allowed_types"]:
         return False, "type non autorise pour ce signataire"
     if not verify(record, signature_hex, members[signer]["public_key"]):
         return False, "signature invalide"

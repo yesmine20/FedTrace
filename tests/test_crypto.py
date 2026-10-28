@@ -23,7 +23,7 @@ def world():
 
 
 def contribution():
-    return {"type": "contribution", "signer": "clinic_1", "n_samples": 4390, "round": 1}
+    return {"record_type": "contribution", "signer": "clinic_1", "n_samples": 4390, "round": 1}
 
 
 def test_valide(world):
