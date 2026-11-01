@@ -1,0 +1,43 @@
+{
+  "model": "softmax (federation/model.py)",
+  "hyperparameters": {
+    "lr": 0.1,
+    "epochs": 300,
+    "l2": 0.1,
+    "batch": "full-batch"
+  },
+  "standardization": "moyenne/ecart-type du jeu d'entrainement (3 cliniques reunies)",
+  "validation": {
+    "split": "20 % des groupes source_group_id, graine 0",
+    "criterion": "accuracy_6",
+    "results_per_l2": [
+      {
+        "l2": 0.0,
+        "accuracy_6": 0.32694355697550587,
+        "accuracy_normal": 0.9994675186368477
+      },
+      {
+        "l2": 0.001,
+        "accuracy_6": 0.32694355697550587,
+        "accuracy_normal": 0.9994675186368477
+      },
+      {
+        "l2": 0.01,
+        "accuracy_6": 0.3285410010649627,
+        "accuracy_normal": 0.9994675186368477
+      },
+      {
+        "l2": 0.1,
+        "accuracy_6": 0.33812566560170393,
+        "accuracy_normal": 1.0
+      }
+    ]
+  },
+  "test": {
+    "accuracy_6": 0.30863309352517987,
+    "accuracy_normal": 0.9992805755395684,
+    "n_test": 2780
+  },
+  "n_train": 11032,
+  "final_train_loss": 1.294426059733032
+}
