@@ -7,7 +7,7 @@ from federation.robust import robust_aggregate
 
 ROOT = Path("offchain")
 N = {"clinic_1": 4390, "clinic_2": 2991, "clinic_3": 3651}
-TAU = 3.0
+TAU = 1.5
 CIBLE = "clinic_3"
 
 
