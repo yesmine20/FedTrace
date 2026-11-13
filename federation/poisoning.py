@@ -18,6 +18,7 @@ def validate_attack(attack: dict | None) -> dict:
     kind = attack.get("type", "none")
     clinic_id = attack.get("clinic_id", "clinic_3")
     start_round = attack.get("start_round", 1)
+    end_round = attack.get("end_round")
     strength = attack.get("strength", 10.0)
 
     if kind not in ATTACK_TYPES:
@@ -26,6 +27,10 @@ def validate_attack(attack: dict | None) -> dict:
         raise ValueError("clinic_id doit avoir la forme clinic_1, clinic_2, ...")
     if not isinstance(start_round, int) or start_round < 1:
         raise ValueError("start_round doit être un entier supérieur ou égal à 1.")
+    if end_round is not None and (
+        not isinstance(end_round, int) or end_round < start_round
+    ):
+        raise ValueError("end_round doit être un entier supérieur ou égal à start_round.")
     if not isinstance(strength, (int, float)) or not np.isfinite(strength) or strength <= 0:
         raise ValueError("strength doit être un nombre fini strictement positif.")
     if kind == "label_flip" and strength > 1:
@@ -35,6 +40,7 @@ def validate_attack(attack: dict | None) -> dict:
         "type": kind,
         "clinic_id": clinic_id,
         "start_round": start_round,
+        "end_round": end_round,
         "strength": float(strength),
     }
 
@@ -45,6 +51,7 @@ def attack_is_active(attack: dict, clinic_id: str, round_idx: int) -> bool:
         attack["type"] != "none"
         and clinic_id == attack["clinic_id"]
         and round_idx >= attack["start_round"]
+        and (attack.get("end_round") is None or round_idx <= attack["end_round"])
     )
 
 

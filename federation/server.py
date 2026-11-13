@@ -115,7 +115,8 @@ def aggregate_robust_median(updates: list[dict], tau: float) -> dict:
 # ---------------------------------------------------------------------------
 def _make_run_dir(strategy: str, tau: float | None, n_rounds: int,
                   lr: float, local_epochs: int, l2: float, seed: int,
-                  attack: dict) -> tuple[str, Path]:
+                  attack: dict, start_round: int,
+                  initial_model: str | None) -> tuple[str, Path]:
     """Crée offchain/runs/<timestamp>_<strategy>/ et écrit run_meta.json.
 
     Retourne (run_id, run_dir).
@@ -124,6 +125,8 @@ def _make_run_dir(strategy: str, tau: float | None, n_rounds: int,
     suffix = f"{strategy}_tau{tau}" if (strategy == "robust_median" and tau is not None) else strategy
     if attack["type"] != "none":
         suffix += f"_{attack['type']}_{attack['clinic_id']}_r{attack['start_round']}"
+        if attack["end_round"] is not None:
+            suffix += f"-r{attack['end_round']}"
     run_id = f"{ts}_{suffix}"
     run_dir = PROJECT_ROOT / "offchain" / "runs" / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -134,6 +137,8 @@ def _make_run_dir(strategy: str, tau: float | None, n_rounds: int,
         "strategy": strategy,
         "tau": tau,
         "attack": attack,
+        "start_round": start_round,
+        "initial_model": initial_model,
         "hyperparameters": {
             "n_rounds": n_rounds,
             "lr": lr,
@@ -160,6 +165,8 @@ def run_federation(
     strategy: str = "fedavg",
     tau: float | None = None,
     attack: dict | None = None,
+    initial_model: str | None = None,
+    start_round: int = 1,
 ) -> str:
     """Lance une fédération complète et retourne le run_id créé.
 
@@ -174,6 +181,18 @@ def run_federation(
         if tau is None or not np.isfinite(tau) or tau <= 0:
             raise ValueError("robust_median exige un tau fini et strictement positif (ex: --tau 1.3).")
 
+    if not isinstance(start_round, int) or start_round < 1:
+        raise ValueError("start_round doit être un entier supérieur ou égal à 1.")
+    if n_rounds < start_round:
+        raise ValueError("rounds doit être supérieur ou égal à start_round.")
+    checkpoint_path = None
+    if initial_model is not None:
+        checkpoint_path = Path(initial_model).expanduser().resolve()
+        if not checkpoint_path.is_file():
+            raise FileNotFoundError(f"Modèle initial introuvable : {checkpoint_path}")
+    elif start_round != 1:
+        raise ValueError("Pour démarrer après r1, fournissez --initial-model.")
+
     attack_cfg = validate_attack(attack)
     if attack_cfg["type"] != "none":
         available = {clinic_id(k) for k in CLINIC_FILES}
@@ -181,16 +200,29 @@ def run_federation(
             raise ValueError(f"Clinique ciblée absente des données : {attack_cfg['clinic_id']}")
 
     # --- Création du dossier de run isolé ---
-    run_id, run_dir = _make_run_dir(strategy, tau, n_rounds, lr, local_epochs, l2, seed, attack_cfg)
+    run_id, run_dir = _make_run_dir(
+        strategy, tau, n_rounds, lr, local_epochs, l2, seed, attack_cfg,
+        start_round, str(checkpoint_path) if checkpoint_path else None,
+    )
 
     print("=" * 72)
     print(f"  FedTrace — Run : {run_id}")
     print(f"  Stratégie : {strategy}" + (f" | τ = {tau}" if strategy == "robust_median" else ""))
-    print(f"  Attaque : {attack_cfg['type']}" + (
-        f" sur {attack_cfg['clinic_id']} dès r{attack_cfg['start_round']:03d}, force={attack_cfg['strength']}"
-        if attack_cfg["type"] != "none" else " (aucune)"
-    ))
-    print(f"  Rounds : {n_rounds} | LR : {lr} | Époques : {local_epochs} | L2 : {l2} | Seed : {seed}")
+    if attack_cfg["type"] == "none":
+        attack_summary = "aucune"
+    else:
+        attack_end = (
+            f" à r{attack_cfg['end_round']:03d}"
+            if attack_cfg["end_round"] is not None else " jusqu’au dernier round"
+        )
+        attack_summary = (
+            f"{attack_cfg['type']} sur {attack_cfg['clinic_id']} "
+            f"de r{attack_cfg['start_round']:03d}{attack_end}, force={attack_cfg['strength']}"
+        )
+    print(f"  Attaque : {attack_summary}")
+    print(f"  Rounds : r{start_round:03d} à r{n_rounds:03d} | LR : {lr} | Époques : {local_epochs} | L2 : {l2} | Seed : {seed}")
+    if checkpoint_path:
+        print(f"  Modèle de départ : {checkpoint_path}")
     print(f"  Dossier de run : offchain/runs/{run_id}/")
     print("=" * 72)
 
@@ -284,22 +316,28 @@ def run_federation(
         xt, yt = to_xy(test_df, classes, cols)
         xt = (xt - global_mu) / global_sd
 
-        # Modèle initial W=0, b=0 — enregistré dans r000/ du run courant
-        global_params = init_params()
-        r0_dir = run_dir / round_id(0)
+        # Le run peut démarrer du modèle initial ou d'un checkpoint sain copié
+        # dans son propre dossier : le fichier source n'est jamais modifié.
+        initial_round = start_round - 1
+        global_params = load_params(str(checkpoint_path)) if checkpoint_path else init_params()
+        r0_dir = run_dir / round_id(initial_round)
         r0_dir.mkdir(exist_ok=True)
         r0_path = r0_dir / "global_model.npz"
         save_params(r0_path, global_params)
 
         m0 = evaluate(yt, predict(global_params, xt), classes)
         loss0 = loss(global_params, xt, yt, l2=0.0)
-        print(f"[r000] Modèle initial  | Perte : {loss0:.4f} | acc6 : {m0['accuracy_6']:.3f} | accN : {m0['accuracy_normal']:.3f}")
-        on_round_end(run_id, 0, "", str(r0_path), m0, strategy="init", retained=[], discarded=[])
+        initial_label = "checkpoint sain" if checkpoint_path else "modèle initial"
+        print(f"[r{initial_round:03d}] {initial_label}  | Perte : {loss0:.4f} | acc6 : {m0['accuracy_6']:.3f} | accN : {m0['accuracy_normal']:.3f}")
+        if checkpoint_path is None:
+            on_round_end(run_id, 0, "", str(r0_path), m0, strategy="init", retained=[], discarded=[])
 
         # ----------------------------------------------------------------
         # Boucle des rounds
         # ----------------------------------------------------------------
-        history = [{"round": 0, "strategy": "init", "loss": loss0,
+        history = [{"round": initial_round,
+                    "strategy": "checkpoint" if checkpoint_path else "init",
+                    "loss": loss0,
                     "retained": [], "discarded": {}, **m0}]
         current_global_path = r0_path
 
@@ -307,7 +345,7 @@ def run_federation(
         print("\n" + f"{'Round':<8}{'Perte test':>12}{'accuracy_6':>14}{'accuracy_normal':>18}{'Rejetées':>12}")
         print("-" * col_w)
 
-        for r in range(1, n_rounds + 1):
+        for r in range(start_round, n_rounds + 1):
             rid = round_id(r)
             round_dir = run_dir / rid
             round_dir.mkdir(exist_ok=True)
@@ -424,6 +462,14 @@ if __name__ == "__main__":
     parser.add_argument("--l2",       type=float, default=0.1,                           help="Régularisation L2")
     parser.add_argument("--seed",     type=int,   default=config.get("seed", 42),        help="Graine aléatoire")
     parser.add_argument(
+        "--initial-model", default=None,
+        help="Chemin d'un checkpoint global servant de point de départ (copié dans le nouveau run)",
+    )
+    parser.add_argument(
+        "--start-round", type=int, default=1,
+        help="Premier round à exécuter (rounds indique le dernier round)",
+    )
+    parser.add_argument(
         "--strategy",
         choices=("fedavg", "robust_median"),
         default=config.get("strategy", "fedavg"),
@@ -450,6 +496,10 @@ if __name__ == "__main__":
         help="Premier round attaqué (défaut: 1)",
     )
     parser.add_argument(
+        "--attack-end-round", type=int, default=None,
+        help="Dernier round attaqué (omis = attaque maintenue jusqu'à la fin)",
+    )
+    parser.add_argument(
         "--attack-strength", type=float, default=10.0,
         help="Force : k pour inversion, multiplicateur RMS pour bruit, fraction pour label_flip",
     )
@@ -467,6 +517,9 @@ if __name__ == "__main__":
             "type": args.attack_type,
             "clinic_id": args.attack_clinic,
             "start_round": args.attack_start_round,
+            "end_round": args.attack_end_round,
             "strength": args.attack_strength,
         },
+        initial_model=args.initial_model,
+        start_round=args.start_round,
     )

@@ -1,39 +1,69 @@
 [
   {
-    "round": 0,
-    "strategy": "init",
-    "loss": 1.7917594692280547,
+    "round": 2,
+    "strategy": "checkpoint",
+    "loss": 1.5385312914210105,
     "retained": [],
     "discarded": {},
-    "accuracy_6": 0.17517985611510792,
-    "accuracy_normal": 0.8658273381294964
-  },
-  {
-    "round": 1,
-    "strategy": "fedavg",
-    "loss": 1.5947278276612507,
-    "retained": [
-      "clinic_1",
-      "clinic_2",
-      "clinic_3"
-    ],
-    "discarded": [],
-    "distances": {},
-    "accuracy_6": 0.29388489208633095,
-    "accuracy_normal": 0.9589928057553957
-  },
-  {
-    "round": 2,
-    "strategy": "fedavg",
-    "loss": 1.5385312914210105,
-    "retained": [
-      "clinic_1",
-      "clinic_2",
-      "clinic_3"
-    ],
-    "discarded": [],
-    "distances": {},
     "accuracy_6": 0.2946043165467626,
     "accuracy_normal": 0.9640287769784173
+  },
+  {
+    "round": 3,
+    "strategy": "robust_median",
+    "loss": 1.518399378308264,
+    "retained": [
+      "clinic_1",
+      "clinic_2",
+      "clinic_3"
+    ],
+    "discarded": [],
+    "distances": {
+      "clinic_1": 0.1534109382431799,
+      "clinic_2": 0.2654436831377651,
+      "clinic_3": 0.308629255429506
+    },
+    "accuracy_6": 0.289568345323741,
+    "accuracy_normal": 0.9712230215827338
+  },
+  {
+    "round": 4,
+    "strategy": "robust_median",
+    "loss": 1.5085924450922583,
+    "retained": [
+      "clinic_1",
+      "clinic_2",
+      "clinic_3"
+    ],
+    "discarded": [],
+    "distances": {
+      "clinic_1": 0.14520320531130623,
+      "clinic_2": 0.25609744571345755,
+      "clinic_3": 0.22030284275404982
+    },
+    "accuracy_6": 0.29820143884892086,
+    "accuracy_normal": 0.9748201438848921
+  },
+  {
+    "round": 5,
+    "strategy": "robust_median",
+    "loss": 1.5092285994483277,
+    "retained": [
+      "clinic_1",
+      "clinic_3"
+    ],
+    "discarded": [
+      {
+        "clinic_id": "clinic_2",
+        "reason": "distance 0.253 > 1.175 x 0.216"
+      }
+    ],
+    "distances": {
+      "clinic_1": 0.14342260940095897,
+      "clinic_2": 0.2533267508818795,
+      "clinic_3": 0.21558164277033667
+    },
+    "accuracy_6": 0.30683453237410074,
+    "accuracy_normal": 0.9787769784172662
   }
 ]
