@@ -30,11 +30,12 @@ if str(PROJECT_ROOT) not in sys.path:
 from federation.client import client_main
 from federation.ids import round_id, clinic_id
 from federation.metrics import (
-    load_split, class_names, feature_columns, to_xy, evaluate
+    CLINIC_FILES, load_split, class_names, feature_columns, to_xy, evaluate
 )
 from federation.model import init_params, loss, predict
 from federation.params_io import save_params, load_params
 from federation.robust import robust_aggregate
+from federation.poisoning import ATTACK_TYPES, validate_attack
 
 
 # ---------------------------------------------------------------------------
@@ -113,13 +114,16 @@ def aggregate_robust_median(updates: list[dict], tau: float) -> dict:
 # Création du dossier de run et écriture du manifeste
 # ---------------------------------------------------------------------------
 def _make_run_dir(strategy: str, tau: float | None, n_rounds: int,
-                  lr: float, local_epochs: int, l2: float, seed: int) -> tuple[str, Path]:
+                  lr: float, local_epochs: int, l2: float, seed: int,
+                  attack: dict) -> tuple[str, Path]:
     """Crée offchain/runs/<timestamp>_<strategy>/ et écrit run_meta.json.
 
     Retourne (run_id, run_dir).
     """
-    ts = datetime.now().strftime("%Y%m%d_%H%M%S")
+    ts = datetime.now().strftime("%Y%m%d_%H%M%S_%f")
     suffix = f"{strategy}_tau{tau}" if (strategy == "robust_median" and tau is not None) else strategy
+    if attack["type"] != "none":
+        suffix += f"_{attack['type']}_{attack['clinic_id']}_r{attack['start_round']}"
     run_id = f"{ts}_{suffix}"
     run_dir = PROJECT_ROOT / "offchain" / "runs" / run_id
     run_dir.mkdir(parents=True, exist_ok=True)
@@ -129,6 +133,7 @@ def _make_run_dir(strategy: str, tau: float | None, n_rounds: int,
         "started_at": datetime.now(timezone.utc).isoformat(),
         "strategy": strategy,
         "tau": tau,
+        "attack": attack,
         "hyperparameters": {
             "n_rounds": n_rounds,
             "lr": lr,
@@ -154,6 +159,7 @@ def run_federation(
     seed: int = 42,
     strategy: str = "fedavg",
     tau: float | None = None,
+    attack: dict | None = None,
 ) -> str:
     """Lance une fédération complète et retourne le run_id créé.
 
@@ -168,12 +174,22 @@ def run_federation(
         if tau is None or not np.isfinite(tau) or tau <= 0:
             raise ValueError("robust_median exige un tau fini et strictement positif (ex: --tau 1.3).")
 
+    attack_cfg = validate_attack(attack)
+    if attack_cfg["type"] != "none":
+        available = {clinic_id(k) for k in CLINIC_FILES}
+        if attack_cfg["clinic_id"] not in available:
+            raise ValueError(f"Clinique ciblée absente des données : {attack_cfg['clinic_id']}")
+
     # --- Création du dossier de run isolé ---
-    run_id, run_dir = _make_run_dir(strategy, tau, n_rounds, lr, local_epochs, l2, seed)
+    run_id, run_dir = _make_run_dir(strategy, tau, n_rounds, lr, local_epochs, l2, seed, attack_cfg)
 
     print("=" * 72)
     print(f"  FedTrace — Run : {run_id}")
     print(f"  Stratégie : {strategy}" + (f" | τ = {tau}" if strategy == "robust_median" else ""))
+    print(f"  Attaque : {attack_cfg['type']}" + (
+        f" sur {attack_cfg['clinic_id']} dès r{attack_cfg['start_round']:03d}, force={attack_cfg['strength']}"
+        if attack_cfg["type"] != "none" else " (aucune)"
+    ))
     print(f"  Rounds : {n_rounds} | LR : {lr} | Époques : {local_epochs} | L2 : {l2} | Seed : {seed}")
     print(f"  Dossier de run : offchain/runs/{run_id}/")
     print("=" * 72)
@@ -194,6 +210,7 @@ def run_federation(
         "lr": lr,
         "local_epochs": local_epochs,
         "l2": l2,
+        "attack": attack_cfg,
     }
 
     # --- Démarrage des processus clients ---
@@ -418,6 +435,24 @@ if __name__ == "__main__":
         default=config.get("tau"),
         help="Seuil τ pour robust_median (ex: 1.3)",
     )
+    parser.add_argument(
+        "--attack-type",
+        choices=tuple(sorted(ATTACK_TYPES)),
+        default="none",
+        help="Attaque simulée à appliquer côté client (défaut: aucune)",
+    )
+    parser.add_argument(
+        "--attack-clinic", default="clinic_3",
+        help="Clinique ciblée (défaut: clinic_3)",
+    )
+    parser.add_argument(
+        "--attack-start-round", type=int, default=1,
+        help="Premier round attaqué (défaut: 1)",
+    )
+    parser.add_argument(
+        "--attack-strength", type=float, default=10.0,
+        help="Force : k pour inversion, multiplicateur RMS pour bruit, fraction pour label_flip",
+    )
     args = parser.parse_args()
 
     run_federation(
@@ -428,4 +463,10 @@ if __name__ == "__main__":
         seed=args.seed,
         strategy=args.strategy,
         tau=args.tau,
+        attack={
+            "type": args.attack_type,
+            "clinic_id": args.attack_clinic,
+            "start_round": args.attack_start_round,
+            "strength": args.attack_strength,
+        },
     )

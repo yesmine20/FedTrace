@@ -10,7 +10,7 @@
   },
   {
     "round": 1,
-    "strategy": "robust_median",
+    "strategy": "fedavg",
     "loss": 1.5947278276612507,
     "retained": [
       "clinic_1",
@@ -18,17 +18,13 @@
       "clinic_3"
     ],
     "discarded": [],
-    "distances": {
-      "clinic_1": 0.19573363173909206,
-      "clinic_2": 0.29122373667016144,
-      "clinic_3": 0.2826685977021678
-    },
+    "distances": {},
     "accuracy_6": 0.29388489208633095,
     "accuracy_normal": 0.9589928057553957
   },
   {
     "round": 2,
-    "strategy": "robust_median",
+    "strategy": "fedavg",
     "loss": 1.5385312914210105,
     "retained": [
       "clinic_1",
@@ -36,11 +32,7 @@
       "clinic_3"
     ],
     "discarded": [],
-    "distances": {
-      "clinic_1": 0.15812856760524296,
-      "clinic_2": 0.26874295263518905,
-      "clinic_3": 0.24295216873712464
-    },
+    "distances": {},
     "accuracy_6": 0.2946043165467626,
     "accuracy_normal": 0.9640287769784173
   }

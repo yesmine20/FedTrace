@@ -10,6 +10,11 @@ from federation.ids import clinic_num
 from federation.metrics import CLINIC_FILES, to_xy
 from federation.model import train_local
 from federation.params_io import load_params, save_params
+from federation.poisoning import (
+    apply_parameter_attack,
+    attack_is_active,
+    flip_labels,
+)
 
 
 def client_main(clinic_id, conn, cfg):
@@ -30,8 +35,24 @@ def client_main(clinic_id, conn, cfg):
                 conn.send(("ok", clinic_id))
             elif cmd == "train":
                 _, _rnd, global_path, out_path = msg
-                new = train_local(load_params(global_path), x, y,
+                global_params = load_params(global_path)
+                y_train = y
+                attack = cfg["attack"]
+                active = attack_is_active(attack, clinic_id, _rnd)
+                if active and attack["type"] == "label_flip":
+                    y_train = flip_labels(
+                        y,
+                        fraction=attack["strength"],
+                        n_classes=len(cfg["classes"]),
+                        seed=cfg["seed"],
+                    )
+                new = train_local(global_params, x, y_train,
                                   lr=cfg["lr"], epochs=cfg["local_epochs"], l2=cfg["l2"])
+                if active:
+                    new = apply_parameter_attack(
+                        attack["type"], global_params, new, attack["strength"],
+                        seed=cfg["seed"] + _rnd,
+                    )
                 save_params(out_path, new)
                 conn.send(("update", clinic_id, out_path, int(len(y))))
             elif cmd == "stop":
