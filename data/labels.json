@@ -1,0 +1,8 @@
+{
+  "Autoimmune orchitis": 0,
+  "Graves' disease": 1,
+  "Normal": 2,
+  "Rheumatoid arthritis": 3,
+  "Sj\u00f6gren syndrome": 4,
+  "Systemic lupus erythematosus (SLE)": 5
+}

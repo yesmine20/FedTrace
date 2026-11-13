@@ -1,0 +1,71 @@
+{
+  "hyperparameters": {
+    "lr": 0.1,
+    "epochs": 300,
+    "l2": 0.1
+  },
+  "standardization": "moyenne/ecart-type des 3 jeux d'entrainement reunis",
+  "n_test": 2780,
+  "results": {
+    "clinic_1": {
+      "n_train": 4390,
+      "final_train_loss": 1.1856309278511499,
+      "accuracy_6_train": 0.6191343963553531,
+      "accuracy_6": 0.32661870503597124,
+      "accuracy_normal": 1.0,
+      "recall_per_class_test": {
+        "Autoimmune orchitis": 0.5728952772073922,
+        "Graves' disease": 0.11224489795918367,
+        "Normal": 1.0,
+        "Rheumatoid arthritis": 0.22660098522167488,
+        "Sjögren syndrome": 0.07977736549165121,
+        "Systemic lupus erythematosus (SLE)": 0.1421188630490956
+      }
+    },
+    "clinic_2": {
+      "n_train": 2991,
+      "final_train_loss": 0.8987895862836026,
+      "accuracy_6_train": 0.7636242059511869,
+      "accuracy_6": 0.33345323741007193,
+      "accuracy_normal": 0.9996402877697842,
+      "recall_per_class_test": {
+        "Autoimmune orchitis": 0.28542094455852157,
+        "Graves' disease": 0.6394557823129252,
+        "Normal": 1.0,
+        "Rheumatoid arthritis": 0.06403940886699508,
+        "Sjögren syndrome": 0.0,
+        "Systemic lupus erythematosus (SLE)": 0.03359173126614987
+      }
+    },
+    "clinic_3": {
+      "n_train": 3651,
+      "final_train_loss": 0.997728432319836,
+      "accuracy_6_train": 0.6669405642289784,
+      "accuracy_6": 0.3338129496402878,
+      "accuracy_normal": 0.9992805755395684,
+      "recall_per_class_test": {
+        "Autoimmune orchitis": 0.012320328542094456,
+        "Graves' disease": 0.015306122448979591,
+        "Normal": 0.9946380697050938,
+        "Rheumatoid arthritis": 0.3448275862068966,
+        "Sjögren syndrome": 0.24118738404452691,
+        "Systemic lupus erythematosus (SLE)": 0.7028423772609819
+      }
+    },
+    "centralise": {
+      "n_train": 11032,
+      "final_train_loss": 1.294426059733032,
+      "accuracy_6_train": 0.5363488034807832,
+      "accuracy_6": 0.30863309352517987,
+      "accuracy_normal": 0.9992805755395684,
+      "recall_per_class_test": {
+        "Autoimmune orchitis": 0.23408624229979466,
+        "Graves' disease": 0.1921768707482993,
+        "Normal": 1.0,
+        "Rheumatoid arthritis": 0.2044334975369458,
+        "Sjögren syndrome": 0.03710575139146568,
+        "Systemic lupus erythematosus (SLE)": 0.4005167958656331
+      }
+    }
+  }
+}
