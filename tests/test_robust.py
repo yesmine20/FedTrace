@@ -87,3 +87,12 @@ def test_weighted_average_of_retained():
     r = robust_aggregate(u, N, tau=1e9)
     expected = sum(N[k] * u[k]["W"] for k in u) / sum(N.values())
     assert np.allclose(r["params"]["W"], expected)
+
+
+def test_all_discarded_does_not_crash():
+    u = updates()
+    # On force un tau quasi-nul pour que toute distance non nulle soit rejetee
+    r = robust_aggregate(u, N, tau=1e-12)
+    assert r["retained"] == []
+    assert r["params"] is None
+    assert len(r["discarded"]) == 3

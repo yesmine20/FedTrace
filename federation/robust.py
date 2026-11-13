@@ -51,6 +51,10 @@ def robust_aggregate(updates, n_samples, tau):
         else:
             retained.append(k)
 
+    if not retained:
+        return {"params": None, "retained": [],
+                "discarded": sorted(discarded, key=lambda d: d["clinic_id"]), "distances": dist}
+
     w = np.array([n_samples[k] for k in retained], dtype=np.float64)
     avg = (w[:, None] * np.stack([vecs[k] for k in retained])).sum(axis=0) / w.sum()
     return {"params": unflatten(avg, like), "retained": retained,

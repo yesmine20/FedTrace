@@ -3,6 +3,7 @@ serveur que par un tube (Pipe) : messages courts, poids echanges par fichiers.
 """
 from pathlib import Path
 
+import numpy as np
 import pandas as pd
 
 from federation.ids import clinic_num
@@ -13,6 +14,8 @@ from federation.params_io import load_params, save_params
 
 def client_main(clinic_id, conn, cfg):
     try:
+        if "seed" in cfg and cfg["seed"] is not None:
+            np.random.seed(cfg["seed"])
         df = pd.read_csv(Path(cfg["data_root"]) / CLINIC_FILES[clinic_num(clinic_id)])
         x_raw, y = to_xy(df, cfg["classes"], cfg["cols"])
         x = None                                   # donnees standardisees (apres "scaler")

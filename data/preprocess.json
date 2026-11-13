@@ -125,5 +125,5 @@
     "pANCA": 0.030093725149470653,
     "Anti_tissue_transglutaminase": 0.14677073874397278
   },
-  "n_samples": 11032
+  "n_samples_train": 11032
 }
