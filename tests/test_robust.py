@@ -48,6 +48,13 @@ def test_nan_update_is_discarded_not_crashing():
     assert np.isfinite(r["params"]["W"]).all()
 
 
+def test_inf_update_is_discarded():
+    u = updates()
+    u["clinic_1"]["b"][0] = np.inf
+    r = robust_aggregate(u, N, TAU)
+    assert r["discarded"][0] == {"clinic_id": "clinic_1", "reason": "non_finite"}
+
+
 def test_order_of_arrival_does_not_change_result():
     u = updates()
     a = robust_aggregate(u, N, TAU)
@@ -56,12 +63,23 @@ def test_order_of_arrival_does_not_change_result():
     assert np.array_equal(a["params"]["W"], b["params"]["W"])
 
 
+def test_order_is_bit_identical():
+    u = updates()
+    a = robust_aggregate(u, N, TAU)
+    b = robust_aggregate({k: u[k] for k in ["clinic_3", "clinic_1", "clinic_2"]}, N, TAU)
+    assert a["discarded"] == b["discarded"]
+    assert a["params"]["W"].tobytes() == b["params"]["W"].tobytes()
+    assert a["params"]["b"].tobytes() == b["params"]["b"].tobytes()
+
+
 def test_two_malicious_out_of_three_defeats_the_defense():
     u = updates()
     u["clinic_2"] = flipped(u["clinic_2"], 10)
     u["clinic_3"] = flipped(u["clinic_3"], 10)
     r = robust_aggregate(u, N, TAU)
-    assert not {"clinic_2", "clinic_3"} <= {d["clinic_id"] for d in r["discarded"]}   # limite attendue : les 2 attaquantes passent
+    # limite connue : l'attaque reussit, personne n'est ecarte
+    assert r["discarded"] == []
+    assert r["retained"] == ["clinic_1", "clinic_2", "clinic_3"]
 
 
 def test_weighted_average_of_retained():
